@@ -4,7 +4,9 @@
   "description": "Ejercicio Backend Red Social API REST (Stack MERN)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start":"node index.js",
+    "start:watch":"node --watch index.js"
   },
   "keywords": [
     "API_REST",
@@ -27,5 +29,6 @@
     "multer": "^1.4.5-lts.1",
     "rimraf": "^6.0.1",
     "validator": "^13.12.0"
-  }
+  },
+  "type": "module"
 }
