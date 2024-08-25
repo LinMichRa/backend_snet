@@ -16,7 +16,7 @@ const puerto = process.env.PORT || 3900;
 
 //Confiigurar el servidor Node
 app.listen(puerto, ()=>{
-    console.log("Servidor de Node ejecutandose eb el puerto", puerto)
+    console.log("Servidor de Node ejecutandose en el puerto", puerto)
 })
 
 export default app;
