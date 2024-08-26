@@ -2,7 +2,10 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
 import connection from "./database/connection.js";
+import FollowRoutes from "./routes/follow.js";
+import publicationRoutes from "./routes/publication.js";
 import UserRoutes from "./routes/user.js";
+
 
 //Mensaje de bienvenida para verificar que ejecutó bien la API de NNode
 console.log("API Node en ejecución")
@@ -26,19 +29,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 //Configurar rutas del aplicativo
 app.use('/api/user', UserRoutes);
-
-//Rutas de prueba
-app.get('/ruta-prueba',(req, res)=>{
-    return res.status(200).json(
-        {
-            'id':1,
-            'name':'Linda Ramírez',
-            'username': 'LinMich'
-        }
-    );
-});
-
-
+app.use('/api/publication', publicationRoutes);
+app.use('/api/follow', FollowRoutes);
 
 //Confiigurar el servidor Node
 app.listen(puerto, ()=>{
