@@ -1,5 +1,13 @@
 import bcrypt from "bcrypt";
 import User from "../models/users.js";
+import { createToken } from "../services/jwt.js";
+
+// Metodo de prueba de usuario
+export const testUser = (req, res) => {
+    return res.status(200).send({
+        message: "Mensaje enviado desde el controlador user.js"
+    });
+}
 
 //Metodo Registro de Usuarios
 export const register = async (req, res) =>{
@@ -61,13 +69,59 @@ export const register = async (req, res) =>{
     }
 }
 
-//Metodo de autenticacion de usuarios (login)
+//Metodo de autenticacion de usuarios (login) usando JWT
 export const login = async(req, res) =>{
     try {
-        // Devolver el usuario registrado
+        //Obtener los parametros del body
+        let params = req.body;
+
+        //Validar parámetros: email y password
+        if(!params.email || !params.password) {
+            return res.status(400).send({
+                status: "error",
+                message: "Faltan datos por enviar"
+            })
+        }
+
+        //Buscar en la BD si existe el email recibido
+        const user = await User.findOne({email: params.email.toLowerCase()})
+
+        //Si no existe el usuario
+        if(!user){
+            return res.status(200).send({
+                status:"error",
+                message:"Usuario no encontrado"
+            })
+        }
+
+        //Comprobar la contraseña
+        const validPassword = await bcrypt.compare(params.password, user.password);
+
+        //Si la contraseña es incorrecta
+        if(!validPassword){
+            return res.status(401).send({
+                status:"error",
+                message:"Contraseña Incorrecta"
+            })
+        }
+
+        //Generar token de autenticacion
+        const token = createToken(user);
+
+        //Devolver Token y datos del usuario autenticado
         return res.status(200).json({
             status: "success",
-            message: "PRUEBA LOGIN"
+            message: "Login exitoso",
+            token,
+            user:{
+                id: user._id,
+                name: user.name,
+                last_name: user.last_name,
+                email: user.email,
+                nick: user.nick,
+                image: user.image,
+                created_at: user.created_at
+            }
         });
 
     } catch (error) {
@@ -76,7 +130,7 @@ export const login = async(req, res) =>{
         //Devuelve mensaje de error
         return response.status(500).send({
             status: "error",
-            message: "Error en ela autenticacion del usuario"
+            message: "Error en la autenticacion del usuario"
         });
     }
 }
