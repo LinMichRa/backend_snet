@@ -135,3 +135,35 @@ export const login = async(req, res) =>{
         });
     }
 }
+
+//Mostrar perfil del usuario
+export const profile = async(req,res) =>{
+    try {
+        //Obtener ID del usuario desde los parametros de la URL
+        const userId=req.params.id;
+
+        //Buscar al usuario en la base de datos y excluimos los datos que no queremos mostrar
+        const user = await User.findById(userId).select('-password -role -email -__v');
+
+        //Verificar si el usuario existe
+        if(!user){
+            return res.status(404).send({
+                status:"success",
+                message: "Usuario no encontrado"
+            });
+        }
+        
+        //Devolver la informacion del perfil del usuario
+        return res.status(200).json({
+            status:"success",
+            user
+        });
+
+    } catch (error) {
+        console.log("Error al obtener el perfil del usuario", error)
+        return res.status(200).send({
+            status: "error",
+            message: "Error al obtener el perfil del usuario"
+        });
+    }
+}
