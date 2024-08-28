@@ -8,6 +8,7 @@ const secret = 'llave_secreta_:D';
 const createToken = (user) => {
     const payload = {
         userId: user._id,
+        name: user.name,
         role: user.role,
         //Fecha emision
         iat: moment().unix(),
