@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import fs from "fs";
 import User from "../models/users.js";
 import { createToken } from "../services/jwt.js";
 
@@ -210,3 +211,119 @@ export const listUsers = async (req, res) => {
       });
     }
   }
+
+//Metodos para actualizar los datos del usuario
+export const updateUser = async (req, res)=>{
+  try {
+    //Obtener la informacion del usuario a actualizar 
+
+    let userIdentity = req.user;
+    let userToUpdate = req.body;
+
+    //Eliminar campos que nos sobran (no vamos a actualizar)
+    delete userToUpdate.iat;
+    delete userToUpdate.exp;
+    delete userToUpdate.role;
+
+    //Comprobar si el usuario ya existe
+    const users = await User.find({
+      $or: [
+        { email: userToUpdate.email },
+        { nick: userToUpdate.nick },
+      ]
+    }).exec();
+
+    //Verificar si el usuario está duplicado y evitar conflictos
+    const isDuplicateUser= users.some(user => {
+      return user && user._id.toString() !== userIdentity.userId;
+    });
+
+    if(isDuplicateUser){
+      return res.status(500).send({
+        status: "error",
+        message: "Error: solo se puede actualizar los datos del usuarios logueado o autenticado"
+      });
+    }
+
+    //Cifrar contraseña si se proporciona
+    if(userToUpdate.password){
+      try {
+        let pwd = await bcrypt.hash(userToUpdate.password, 10);
+        userToUpdate.password = pwd;
+      } catch (hashError) {
+        return res.status(500).send({
+          status: "error",
+          message: "Error al cifrar la contraseña"
+        });
+      }
+    } else {
+      delete userToUpdate.password;
+    }
+
+    //Buscar y actualizar
+    let userUpdated = await User.findByIdAndUpdate(userIdentity.userId, userToUpdate, {neww:true});
+
+    if(!userUpdated){
+      return res.status(400).send({
+        status: "error",
+        message: "Error al actualizar el usuario"
+      });
+    }
+
+    //Devolver la respuesta exitosa
+    return res.status(200).send({
+      status: "success",
+      message: "Usuario actualizado correctamente",
+      user: userUpdated
+    });
+  } catch (error) {
+    console.log("Error al actualizar el usuario:", error)
+      return res.status(500).send({
+        status: "error",
+        message: "Error al actualizar el usuario"
+      });
+  }
+}
+
+//Metodo para subir AVATAR (imagen de perfil) y actualizar el campo  image del User
+export const uploadAvatar = async (req, res) =>{
+  try {
+    //Obtener el archivo de las imagenes y si comprobar si existe
+    if(!req.file){
+      return res.status(404).send({
+        status: "error",
+        message: "Error la peticion no incluye la imagen"
+      });
+    }
+      
+    //Obtener el nombre del archivo
+    let image = req.file.originalname;
+
+    //Obtener la extensión del archivo
+    const imageSplit = image.split(".");
+    const extension =imageSplit[imageSplit.length-1];
+
+    //Validar la extensión
+    if (!["png", "jpg", "jpeg", "gif"].includes(extension.toLowerCase())){
+      //Borrar archivo subido
+      const filePath = req.file.path;
+      fs.unlinkSync(filePath);
+
+      return res.status(404).send({
+        status: "error",
+        message: "Extensión del archivo inválida. Solo se permite: png, jpg, jpeg, gif"
+      });
+    }
+
+    return res.status(200).send({
+      status: "success",
+      message: "Subir archivo avatar"
+    });
+  } catch (error) {
+    console.log("Error al subir el archivo:", error)
+      return res.status(500).send({
+        status: "error",
+        message: "Error al subir el archivo"
+      });
+  }
+}
