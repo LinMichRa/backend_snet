@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import fs from "fs";
 import path from "path";
 import User from "../models/users.js";
+import { followThisUser } from "../services/followServices.js";
 import { createToken } from "../services/jwt.js";
 
 // Metodo de prueba de usuario
@@ -144,21 +145,33 @@ export const profile = async(req,res) =>{
         //Obtener ID del usuario desde los parametros de la URL
         const userId=req.params.id;
 
-        //Buscar al usuario en la base de datos y excluimos los datos que no queremos mostrar
-        const user = await User.findById(userId).select('-password -role -email -__v');
+        //Verificar sii el ID del usuario autenticado está disponible
+        if(!req.user || !req.user.userId){
+          return res.status(401).send({
+            status:"Error",
+            message:"Usuario no autenticado"
+          });
+        }
 
-        //Verificar si el usuario existe
-        if(!user){
+        //Buscar al usuario en la base de datos y excluimos los datos que no queremos mostrar
+        const userProfile = await User.findById(userId).select('-password -role -email -__v');
+
+        //Verificar si el usuario no existe
+        if(!userProfile){
             return res.status(404).send({
                 status:"success",
                 message: "Usuario no encontrado"
             });
         }
+
+        //Informacion del seguimento
+        const followInfo = await followThisUser(req.user.userId, userId);
         
         //Devolver la informacion del perfil del usuario
         return res.status(200).json({
             status:"success",
-            user
+            user: userProfile,
+            followInfo
         });
 
     } catch (error) {
