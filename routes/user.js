@@ -2,6 +2,8 @@ import { Router } from "express";
 import multer from "multer";
 import { listUsers, login, profile, register, testUser, updateUser, uploadAvatar } from "../controllers/user.js";
 import { ensureAuth } from "../middlewares/auth.js";
+import { checkEntityExists } from "../middlewares/checkEntityExists.js";
+import User from "../models/users.js";
 
 const router = Router();
 
@@ -24,7 +26,7 @@ router.post('/login',login)
 router.get('/profile/:id',ensureAuth, profile)
 router.get('/list/:page?',ensureAuth, listUsers)
 router.put('/update',ensureAuth, updateUser)
-router.post('/upload_avatar', [uploads.single("file0")], uploadAvatar);
+router.post('/upload-avatar', [ensureAuth, checkEntityExists(User, 'user_id'), uploads.single("file0")], uploadAvatar);
 
 //Exportar el Router
 export default router;

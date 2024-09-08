@@ -315,9 +315,40 @@ export const uploadAvatar = async (req, res) =>{
       });
     }
 
-    return res.status(200).send({
+    // Comprobar tamaño del archivo (pj: máximo 1MB)
+    const fileSize = req.file.size;
+    const maxFileSize = 1 * 1024 * 1024; // 1 MB
+
+    if (fileSize > maxFileSize) {
+      const filePath = req.file.path;
+      fs.unlinkSync(filePath);
+
+      return res.status(400).send({
+        status: "error",
+        message: "El tamaño del archivo excede el límite (máx 1 MB)"
+      });
+    }
+
+    // Guardar la imagen en la BD
+    const userUpdated = await User.findOneAndUpdate(
+      {_id: req.user.userId},
+      { image: req.file.filename },
+      { new: true}
+    );
+
+    // verificar si la actualización fue exitosa
+    if (!userUpdated) {
+      return res.status(500).send({
+        status: "error",
+        message: "Eror en la subida de la imagen"
+      });
+    }
+
+    // Devolver respuesta exitosa
+    return res.status(200).json({
       status: "success",
-      message: "Subir archivo avatar"
+      user: userUpdated,
+      file: req.file
     });
   } catch (error) {
     console.log("Error al subir el archivo:", error)
