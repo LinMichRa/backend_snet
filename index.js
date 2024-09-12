@@ -20,7 +20,9 @@ const puerto = process.env.PORT || 3900;
 //Configurar cors para hacer las peticiones correctamente
 app.use(cors({
     origin:'*',
-    methods:'GET, HEAD, PUT, PATCH, POST, DELETE'
+    methods:'GET, HEAD, PUT, PATCH, POST, DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
 
 //Decodificar los datos desde los formularios para convertiirlos en objectos JS
@@ -31,6 +33,12 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use('/api/user', UserRoutes);
 app.use('/api/publication', publicationRoutes);
 app.use('/api/follow', FollowRoutes);
+
+// Configuración para servir archivos estáticos (imágenes de avatar)
+app.use('/uploads/avatars', express.static(path.join(__dirname, 'uploads', 'avatars')));
+
+// Configuración para servir archivos estáticos (imágenes de publicaciones)
+app.use('/uploads/publications', express.static(path.join(__dirname, 'uploads', 'publications')));
 
 //Confiigurar el servidor Node
 app.listen(puerto, ()=>{
