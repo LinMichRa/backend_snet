@@ -1,8 +1,10 @@
+import dotenv from 'dotenv';
 import jwt from "jwt-simple";
 import moment from 'moment';
 
+dotenv.config();
 //Clave secreta
-const secret = 'llave_secreta_:D';
+const secret = process.env.SECRET_KEY;
 
 //Generar Token
 const createToken = (user) => {
