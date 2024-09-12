@@ -1,11 +1,12 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import connection from "./database/connection.js";
 import FollowRoutes from "./routes/follow.js";
 import publicationRoutes from "./routes/publication.js";
 import UserRoutes from "./routes/user.js";
-
 
 //Mensaje de bienvenida para verificar que ejecutó bien la API de NNode
 console.log("API Node en ejecución")
@@ -33,6 +34,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use('/api/user', UserRoutes);
 app.use('/api/publication', publicationRoutes);
 app.use('/api/follow', FollowRoutes);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Configuración para servir archivos estáticos (imágenes de avatar)
 app.use('/uploads/avatars', express.static(path.join(__dirname, 'uploads', 'avatars')));
